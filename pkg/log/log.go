@@ -35,7 +35,7 @@ func zapEncoderConfig() zapcore.EncoderConfig {
 		MessageKey:    "message",
 		StacktraceKey: "stacktrace",
 		LineEnding:    "\n",
-		EncodeLevel:   zapcore.LowercaseColorLevelEncoder,
+		EncodeLevel:   zapcore.LowercaseLevelEncoder,
 		EncodeTime: func(t time.Time, e zapcore.PrimitiveArrayEncoder) {
 			e.AppendString(t.Format("2006-01-02 15:04:05"))
 		},

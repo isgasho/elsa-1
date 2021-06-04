@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	RenewDuration              = time.Second * 30
-	ScanEvictDuration          = time.Second * 60
-	SelfProtectedThreshold     = 0.8
-	InstanceEvictDuration      = time.Second * 90
-	InstanceMaxExpiredDuration = 3600 * time.Second
+	RenewDuration                = time.Second * 30
+	ScanEvictDuration            = time.Second * 60
+	SelfProtectedThreshold       = 0.8
+	InstanceEvictExpiredDuration = time.Second * 90
+	InstanceMaxExpiredDuration   = time.Second * 3600
 )
 
 // census
