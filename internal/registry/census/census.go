@@ -12,6 +12,7 @@ const (
 	SelfProtectedThreshold       = 0.8
 	InstanceEvictExpiredDuration = time.Second * 90
 	InstanceMaxExpiredDuration   = time.Second * 3600
+	ResetRenewNeedCountDuration  = time.Second * 900
 )
 
 // census

@@ -151,15 +151,30 @@ func (r *registry) getApplications() []*Application {
 func (r *registry) lookup() {
 
 	evictTicker := time.Tick(census.ScanEvictDuration)
+	seekNeedCountTicker := time.Tick(census.ResetRenewNeedCountDuration)
 	for {
 
 		select {
 		case <-evictTicker:
 			r.c.ResetCount()
 			r.evict()
+		case <-seekNeedCountTicker: //
+			r.seekNeedCount()
 		}
 
 	}
+}
+
+// seek renew need count
+func (r *registry) seekNeedCount() {
+
+	var count int64
+	apps := r.getApplications()
+	for _, app := range apps {
+		count += int64(len(app.instances))
+	}
+	log.Info("start seek need count:%d", count)
+	r.c.SeekNeedCount(count)
 }
 
 // evict expired instance
