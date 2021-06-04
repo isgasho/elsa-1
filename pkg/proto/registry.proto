@@ -1,0 +1,45 @@
+syntax ="proto3";
+package com.busgo.registry.proto;
+option  go_package ="/pb";
+
+service RegistryService {
+
+  // register a service instance
+  rpc register(RegisterRequest)returns(RegisterResponse);
+}
+
+
+message RegisterRequest {
+
+  string segment=1;
+  string serviceName=2;
+  string ip=3;
+  int32 port=4;
+  map<string,string>metadata=5;
+  int64 regTimestamp =6;
+  int64 upTimestamp =7;
+  int64 renewTimestamp=8;
+  int64 dirtyTimestamp=9;
+  int64 latestTimestamp=10;
+}
+
+message RegisterResponse {
+  int32 code =1;
+  string message=2;
+  ServiceInstance instance=3;
+}
+
+
+message ServiceInstance {
+
+   string segment=1;
+   string serviceName=2;
+   string ip=3;
+   int32 port=4;
+   map<string,string>metadata=5;
+   int64 regTimestamp =6;
+   int64 upTimestamp =7;
+   int64 renewTimestamp=8;
+   int64 dirtyTimestamp=9;
+   int64 latestTimestamp=10;
+}
