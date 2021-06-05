@@ -1,6 +1,6 @@
 syntax ="proto3";
 package com.busgo.registry.proto;
-option  go_package ="/pb";
+option  go_package ="github.com/busgo/elsa/pkg/proto/pb";
 
 service RegistryService {
 
@@ -21,6 +21,7 @@ message RegisterRequest {
   int64 renewTimestamp=8;
   int64 dirtyTimestamp=9;
   int64 latestTimestamp=10;
+  SyncTypeEnum syncType =11;
 }
 
 message RegisterResponse {
@@ -29,7 +30,11 @@ message RegisterResponse {
   ServiceInstance instance=3;
 }
 
+enum SyncTypeEnum {
+   None =0;
+   Yes =1;
 
+}
 message ServiceInstance {
 
    string segment=1;
