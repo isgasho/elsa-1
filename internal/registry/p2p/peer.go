@@ -20,6 +20,7 @@ const (
 type PeerPool struct {
 	endpoints   []string
 	peers       []*Peer
+	state       bool
 	syncMsgChan chan *SyncMsg
 }
 
@@ -52,6 +53,7 @@ func NewPeerPoolWithEndpoints(endpoints []string) (*PeerPool, error) {
 	return &PeerPool{
 		endpoints:   endpoints,
 		peers:       peers,
+		state:       false,
 		syncMsgChan: make(chan *SyncMsg, 128),
 	}, nil
 }
@@ -61,9 +63,21 @@ func (pool *PeerPool) PushMsg(msg *SyncMsg) {
 	pool.syncMsgChan <- msg
 }
 
-func (pool *PeerPool) lookup() {
-	for {
+// start the peer pool
+func (pool *PeerPool) Start() {
+	if pool.state {
+		log.Warnf("the peer pool %s has start", pool.endpoints)
+		return
+	}
+	pool.state = true
+	go pool.lookup()
+}
 
+// lookup the sync message
+func (pool *PeerPool) lookup() {
+
+	log.Debugf("the peer pool:%s has start...", pool.endpoints)
+	for {
 		select {
 		case msg, ok := <-pool.syncMsgChan:
 			if !ok {
