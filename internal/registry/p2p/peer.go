@@ -173,7 +173,6 @@ func NewPeerEndpoint(endpoint string) (*Peer, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("the peer endpoint:%s success", endpoint)
 	return &Peer{
 		endpoint: endpoint,
 		cli:      pb.NewRegistryServiceClient(cc),
