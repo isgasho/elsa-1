@@ -6,8 +6,44 @@ service RegistryService {
 
   // register a service instance
   rpc register(RegisterRequest)returns(RegisterResponse);
+
+  // renew a service instance
+  rpc renew(RenewRequest)returns(RenewResponse);
+
+  // cancel a service instance
+  rpc cancel(CancelRequest)returns(CancelResponse);
+
 }
 
+message CancelRequest {
+  string segment=1;
+  string serviceName=2;
+  string ip=3;
+  int32 port=4;
+  SyncTypeEnum syncType =11;
+}
+
+message CancelResponse {
+  int32 code =1;
+  string message=2;
+  ServiceInstance instance=3;
+}
+
+
+message RenewRequest {
+
+  string segment=1;
+  string serviceName=2;
+  string ip=3;
+  int32 port=4;
+  SyncTypeEnum syncType =11;
+}
+
+message RenewResponse {
+  int32 code =1;
+  string message=2;
+  ServiceInstance instance=3;
+}
 
 message RegisterRequest {
 

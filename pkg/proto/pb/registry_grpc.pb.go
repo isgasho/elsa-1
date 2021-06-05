@@ -24,6 +24,10 @@ const _ = grpc.SupportPackageIsVersion7
 type RegistryServiceClient interface {
 	// register a service instance
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	// renew a service instance
+	Renew(ctx context.Context, in *RenewRequest, opts ...grpc.CallOption) (*RenewResponse, error)
+	// cancel a service instance
+	Cancel(ctx context.Context, in *CancelRequest, opts ...grpc.CallOption) (*CancelResponse, error)
 }
 
 type registryServiceClient struct {
@@ -43,12 +47,34 @@ func (c *registryServiceClient) Register(ctx context.Context, in *RegisterReques
 	return out, nil
 }
 
+func (c *registryServiceClient) Renew(ctx context.Context, in *RenewRequest, opts ...grpc.CallOption) (*RenewResponse, error) {
+	out := new(RenewResponse)
+	err := c.cc.Invoke(ctx, "/com.busgo.registry.proto.RegistryService/renew", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registryServiceClient) Cancel(ctx context.Context, in *CancelRequest, opts ...grpc.CallOption) (*CancelResponse, error) {
+	out := new(CancelResponse)
+	err := c.cc.Invoke(ctx, "/com.busgo.registry.proto.RegistryService/cancel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RegistryServiceServer is the server API for RegistryService service.
 // All implementations must embed UnimplementedRegistryServiceServer
 // for forward compatibility
 type RegistryServiceServer interface {
 	// register a service instance
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	// renew a service instance
+	Renew(context.Context, *RenewRequest) (*RenewResponse, error)
+	// cancel a service instance
+	Cancel(context.Context, *CancelRequest) (*CancelResponse, error)
 	mustEmbedUnimplementedRegistryServiceServer()
 }
 
@@ -58,6 +84,12 @@ type UnimplementedRegistryServiceServer struct {
 
 func (UnimplementedRegistryServiceServer) Register(context.Context, *RegisterRequest) (*RegisterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+}
+func (UnimplementedRegistryServiceServer) Renew(context.Context, *RenewRequest) (*RenewResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Renew not implemented")
+}
+func (UnimplementedRegistryServiceServer) Cancel(context.Context, *CancelRequest) (*CancelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Cancel not implemented")
 }
 func (UnimplementedRegistryServiceServer) mustEmbedUnimplementedRegistryServiceServer() {}
 
@@ -90,6 +122,42 @@ func _RegistryService_Register_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RegistryService_Renew_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenewRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RegistryServiceServer).Renew(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/com.busgo.registry.proto.RegistryService/renew",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RegistryServiceServer).Renew(ctx, req.(*RenewRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RegistryService_Cancel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RegistryServiceServer).Cancel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/com.busgo.registry.proto.RegistryService/cancel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RegistryServiceServer).Cancel(ctx, req.(*CancelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RegistryService_ServiceDesc is the grpc.ServiceDesc for RegistryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +168,14 @@ var RegistryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "register",
 			Handler:    _RegistryService_Register_Handler,
+		},
+		{
+			MethodName: "renew",
+			Handler:    _RegistryService_Renew_Handler,
+		},
+		{
+			MethodName: "cancel",
+			Handler:    _RegistryService_Cancel_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
