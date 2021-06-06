@@ -10,20 +10,7 @@ import (
 const CallerSkipNum = 1
 
 var (
-	s             *zap.SugaredLogger
-	encoderConfig = zapcore.EncoderConfig{
-		TimeKey:        "timestamp",
-		LevelKey:       "level",
-		NameKey:        "logger",
-		CallerKey:      "caller",
-		MessageKey:     "message",
-		StacktraceKey:  "stacktrace",
-		LineEnding:     "\n",
-		EncodeLevel:    zapcore.LowercaseColorLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.FullCallerEncoder,
-	}
+	s *zap.SugaredLogger
 )
 
 func zapEncoderConfig() zapcore.EncoderConfig {
