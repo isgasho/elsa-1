@@ -46,7 +46,7 @@ func NewRegistry() Registry {
 
 // register a instance
 func (r *registry) Register(instance *Instance) (*Instance, error) {
-	log.Infof("start register action instance%#v", instance)
+	log.Infof("start register action instance%#v", instance.String())
 
 	segment := instance.Segment
 	serviceName := instance.ServiceName
