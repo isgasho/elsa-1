@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/busgo/elsa/pkg/log"
 	"github.com/busgo/elsa/pkg/proto/pb"
+	"github.com/busgo/elsa/pkg/utils"
 	"google.golang.org/grpc"
+	"strings"
 	"time"
 )
 
@@ -15,6 +17,8 @@ const (
 	SyncMsgRenewType
 	SyncMsgCancelType
 )
+
+const DefaultEndpoint = "127.0.0.1:8005"
 
 // peer pool
 type PeerPool struct {
@@ -33,6 +37,7 @@ type SyncMsg struct {
 // peer
 type Peer struct {
 	endpoint string
+	local    bool
 	cli      pb.RegistryServiceClient
 }
 
@@ -41,6 +46,9 @@ func NewPeerPoolWithEndpoints(endpoints []string) (*PeerPool, error) {
 
 	peers := make([]*Peer, 0)
 
+	if len(endpoints) == 0 {
+		endpoints = []string{DefaultEndpoint}
+	}
 	for _, endpoint := range endpoints {
 		p, err := NewPeerEndpoint(endpoint)
 		if err != nil {
@@ -118,7 +126,10 @@ func (pool *PeerPool) handleRegMsg(msg *SyncMsg) {
 	log.Debugf("handle the reg message %#v", msg)
 	req := msg.Content.(*pb.RegisterRequest)
 	for _, peer := range pool.peers {
-
+		if peer.local {
+			log.Debugf("the peer endpoint:%s is local peer", peer.endpoint)
+			continue
+		}
 		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
 		_, err := peer.cli.Register(ctx, req)
 		if err != nil {
@@ -136,9 +147,11 @@ func (pool *PeerPool) handleRenewMsg(msg *SyncMsg) {
 
 	log.Debugf("handle the renew message %#v", msg)
 	req := msg.Content.(*pb.RenewRequest)
-
 	for _, peer := range pool.peers {
-
+		if peer.local {
+			log.Debugf("the peer endpoint:%s is local peer", peer.endpoint)
+			continue
+		}
 		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
 		_, err := peer.cli.Renew(ctx, req)
 		if err != nil {
@@ -158,6 +171,10 @@ func (pool *PeerPool) handleCancelMsg(msg *SyncMsg) {
 
 	for _, peer := range pool.peers {
 
+		if peer.local {
+			log.Debugf("the peer endpoint:%s is local peer", peer.endpoint)
+			continue
+		}
 		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
 		_, err := peer.cli.Cancel(ctx, req)
 		if err != nil {
@@ -175,8 +192,10 @@ func NewPeerEndpoint(endpoint string) (*Peer, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &Peer{
 		endpoint: endpoint,
 		cli:      pb.NewRegistryServiceClient(cc),
+		local:    strings.HasPrefix(endpoint, utils.GetLocalIp()),
 	}, nil
 }

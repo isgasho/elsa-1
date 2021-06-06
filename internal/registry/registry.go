@@ -148,9 +148,9 @@ func (r *registry) getApplications() []*Application {
 
 //------------------------------------evict expired instance task----------------------------------------------------------//
 func (r *registry) lookup() {
-
 	evictTicker := time.Tick(census.ScanEvictDuration)
 	seekNeedCountTicker := time.Tick(census.ResetRenewNeedCountDuration)
+	log.Debug("the registry evict task has start...")
 	for {
 
 		select {

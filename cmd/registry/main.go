@@ -1,33 +1,18 @@
 package main
 
-import (
-	"github.com/busgo/elsa/internal/registry"
-	"github.com/busgo/elsa/pkg/log"
-	"time"
-)
+import "github.com/busgo/elsa/internal/registry/server"
 
 func main() {
 
-	log.Info("ddd")
-	log.Debug("debug...")
+	endpoints := []string{"127.0.0.1:8005"}
+	s, err := server.NewRegistryServerWithEndpoints(endpoints)
 
-	r := registry.NewRegistry()
-	log.Infof("registry:%#v", r)
-	r.Register(&registry.Instance{
-
-		Segment:         "dev",
-		ServiceName:     "com.busgo.trade.proto.TradeService",
-		Ip:              "192.168.1.1",
-		Port:            8001,
-		Metadata:        make(map[string]string),
-		RegTimestamp:    time.Now().UnixNano(),
-		UpTimestamp:     time.Now().UnixNano(),
-		RenewTimestamp:  time.Now().UnixNano(),
-		DirtyTimestamp:  time.Now().UnixNano(),
-		LatestTimestamp: time.Now().UnixNano(),
-	})
-	for {
-
-		time.Sleep(time.Second)
+	if err != nil {
+		panic(err)
 	}
+
+	if err = s.Start(); err != nil {
+		panic(err)
+	}
+
 }
