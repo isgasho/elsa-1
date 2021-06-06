@@ -15,6 +15,17 @@ service RegistryService {
 
 }
 
+message FetchRequest {
+  string segment=1;
+  string serviceName=2;
+}
+
+message FetchResponse {
+  int32 code =1;
+  string message=2;
+  repeated ServiceInstance instance=3;
+}
+
 message CancelRequest {
   string segment=1;
   string serviceName=2;
