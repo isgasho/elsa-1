@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -56,7 +55,7 @@ func (app *Application) cancel(ip string, port int32) (*Instance, error) {
 	defer app.Unlock()
 	in, ok := app.instances[fmt.Sprintf("%s-%d", ip, port)]
 	if !ok {
-		return nil, errors.New("instance not found")
+		return nil, InstanceNotFoundError
 	}
 
 	instance := in.Copy()
@@ -79,7 +78,7 @@ func (app *Application) renew(ip string, port int32) (*Instance, error) {
 	defer app.Unlock()
 	instance, ok := app.instances[fmt.Sprintf("%s-%d", ip, port)]
 	if !ok {
-		return nil, errors.New("instance not found...")
+		return nil, InstanceNotFoundError
 	}
 	instance.RenewTimestamp = time.Now().UnixNano()
 	return instance.Copy(), nil

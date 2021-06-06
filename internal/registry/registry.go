@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -83,7 +82,7 @@ func (r *registry) Cancel(segment, serviceName, ip string, port int32) (*Instanc
 	app, ok := r.getApplication(segment, serviceName)
 	if !ok {
 		log.Warnf("the application not found segment:%s,serviceName:%s", segment, serviceName)
-		return nil, errors.New("app not found")
+		return nil, ApplicationNotFoundError
 	}
 
 	in, err := app.cancel(ip, port)
@@ -109,7 +108,7 @@ func (r *registry) Renew(segment, serviceName, ip string, port int32) (*Instance
 	app, ok := r.getApplication(segment, serviceName)
 	if !ok {
 		log.Warnf("the application not found segment:%s,serviceName:%s", segment, serviceName)
-		return nil, errors.New("app not found")
+		return nil, ApplicationNotFoundError
 	}
 
 	in, err := app.renew(ip, port)
