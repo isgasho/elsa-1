@@ -62,21 +62,73 @@ func getLocalEndpoint(endpoints []string) string {
 			return endpoint
 		}
 	}
-
 	return p2p.DefaultEndpoint
 }
 
 // register a service instance
 func (s *RegistryServer) Register(ctx context.Context, request *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	return nil, nil
+
+	instance := registry.NewInstance(request)
+	in, _ := s.r.Register(instance)
+
+	return &pb.RegisterResponse{
+		Code:     0,
+		Message:  "",
+		Instance: registry.NewServiceInstance(in),
+	}, nil
 }
 
 // renew a service instance
 func (s *RegistryServer) Renew(ctx context.Context, request *pb.RenewRequest) (*pb.RenewResponse, error) {
-	return nil, nil
+
+	in, err := s.r.Renew(request.Segment, request.ServiceName, request.Ip, request.Port)
+	if err != nil {
+		e := err.(registry.RegistryError)
+		return &pb.RenewResponse{
+			Code:     e.Code,
+			Message:  e.Message,
+			Instance: nil,
+		}, nil
+	}
+
+	// sync other peer
+	if request.SyncType == pb.SyncTypeEnum_Yes {
+		s.pool.PushMsg(&p2p.SyncMsg{
+			Type:    p2p.SyncMsgRenewType,
+			Content: registry.NewRenewRequest(in.Segment, in.ServiceName, in.Ip, in.Port),
+		})
+	}
+
+	return &pb.RenewResponse{
+		Code:     0,
+		Message:  "",
+		Instance: registry.NewServiceInstance(in),
+	}, nil
 }
 
 // cancel a service instance
 func (s *RegistryServer) Cancel(ctx context.Context, request *pb.CancelRequest) (*pb.CancelResponse, error) {
-	return nil, nil
+	in, err := s.r.Renew(request.Segment, request.ServiceName, request.Ip, request.Port)
+	if err != nil {
+		e := err.(registry.RegistryError)
+		return &pb.CancelResponse{
+			Code:     e.Code,
+			Message:  e.Message,
+			Instance: nil,
+		}, nil
+	}
+
+	// sync other peer
+	if request.SyncType == pb.SyncTypeEnum_Yes {
+		s.pool.PushMsg(&p2p.SyncMsg{
+			Type:    p2p.SyncMsgCancelType,
+			Content: registry.NewCancelRequest(in.Segment, in.ServiceName, in.Ip, in.Port),
+		})
+	}
+
+	return &pb.CancelResponse{
+		Code:     0,
+		Message:  "",
+		Instance: registry.NewServiceInstance(in),
+	}, nil
 }

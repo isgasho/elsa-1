@@ -127,7 +127,7 @@ func (pool *PeerPool) handleRegMsg(msg *SyncMsg) {
 	req := msg.Content.(*pb.RegisterRequest)
 	for _, peer := range pool.peers {
 		if peer.local {
-			log.Debugf("the peer endpoint:%s is local peer", peer.endpoint)
+			log.Debugf("the peer endpoint:%s is local peer not sync reg message", peer.endpoint)
 			continue
 		}
 		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
@@ -149,7 +149,7 @@ func (pool *PeerPool) handleRenewMsg(msg *SyncMsg) {
 	req := msg.Content.(*pb.RenewRequest)
 	for _, peer := range pool.peers {
 		if peer.local {
-			log.Debugf("the peer endpoint:%s is local peer", peer.endpoint)
+			log.Debugf("the peer endpoint:%s is local peer not sync renew message", peer.endpoint)
 			continue
 		}
 		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
@@ -172,7 +172,7 @@ func (pool *PeerPool) handleCancelMsg(msg *SyncMsg) {
 	for _, peer := range pool.peers {
 
 		if peer.local {
-			log.Debugf("the peer endpoint:%s is local peer", peer.endpoint)
+			log.Debugf("the peer endpoint:%s is local peer not sync cancel message", peer.endpoint)
 			continue
 		}
 		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)

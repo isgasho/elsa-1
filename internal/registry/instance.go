@@ -1,6 +1,10 @@
 package registry
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/busgo/elsa/pkg/proto/pb"
+	"time"
+)
 
 type Instance struct {
 	Segment         string            `json:"segment"`
@@ -31,4 +35,62 @@ func (in *Instance) String() string {
 		return ""
 	}
 	return string(content)
+}
+
+func NewInstance(req *pb.RegisterRequest) *Instance {
+
+	now := time.Now().UnixNano()
+	return &Instance{
+		Segment:         req.Segment,
+		ServiceName:     req.ServiceName,
+		Ip:              req.Ip,
+		Port:            req.Port,
+		Metadata:        make(map[string]string),
+		RegTimestamp:    now,
+		UpTimestamp:     now,
+		RenewTimestamp:  now,
+		DirtyTimestamp:  now,
+		LatestTimestamp: now,
+	}
+}
+
+// new a service instance
+func NewServiceInstance(instance *Instance) *pb.ServiceInstance {
+
+	return &pb.ServiceInstance{
+		Segment:         instance.Segment,
+		ServiceName:     instance.ServiceName,
+		Ip:              instance.Ip,
+		Port:            instance.Port,
+		Metadata:        instance.Metadata,
+		RegTimestamp:    instance.RegTimestamp,
+		UpTimestamp:     instance.UpTimestamp,
+		RenewTimestamp:  instance.RegTimestamp,
+		DirtyTimestamp:  instance.DirtyTimestamp,
+		LatestTimestamp: instance.LatestTimestamp,
+	}
+}
+
+// create renew request
+func NewRenewRequest(segment, serviceName, ip string, port int32) *pb.RenewRequest {
+
+	return &pb.RenewRequest{
+		Segment:     segment,
+		ServiceName: serviceName,
+		Ip:          ip,
+		Port:        port,
+		SyncType:    pb.SyncTypeEnum_None,
+	}
+}
+
+// create cancel request
+func NewCancelRequest(segment, serviceName, ip string, port int32) *pb.CancelRequest {
+
+	return &pb.CancelRequest{
+		Segment:     segment,
+		ServiceName: serviceName,
+		Ip:          ip,
+		Port:        port,
+		SyncType:    pb.SyncTypeEnum_None,
+	}
 }
