@@ -115,8 +115,8 @@ func (pool *PeerPool) handleSyncMsg(msg *SyncMsg) {
 // handle the reg message
 func (pool *PeerPool) handleRegMsg(msg *SyncMsg) {
 
+	log.Debugf("handle the reg message %#v", msg)
 	req := msg.Content.(*pb.RegisterRequest)
-
 	for _, peer := range pool.peers {
 
 		ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
@@ -134,6 +134,7 @@ func (pool *PeerPool) handleRegMsg(msg *SyncMsg) {
 // handle the renew msg
 func (pool *PeerPool) handleRenewMsg(msg *SyncMsg) {
 
+	log.Debugf("handle the renew message %#v", msg)
 	req := msg.Content.(*pb.RenewRequest)
 
 	for _, peer := range pool.peers {
@@ -152,6 +153,7 @@ func (pool *PeerPool) handleRenewMsg(msg *SyncMsg) {
 // handle the cancel msg
 func (pool *PeerPool) handleCancelMsg(msg *SyncMsg) {
 
+	log.Debugf("handle the cancel message %#v", msg)
 	req := msg.Content.(*pb.CancelRequest)
 
 	for _, peer := range pool.peers {
