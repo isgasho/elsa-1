@@ -28,6 +28,8 @@ type RegistryServiceClient interface {
 	Renew(ctx context.Context, in *RenewRequest, opts ...grpc.CallOption) (*RenewResponse, error)
 	// cancel a service instance
 	Cancel(ctx context.Context, in *CancelRequest, opts ...grpc.CallOption) (*CancelResponse, error)
+	// fetch service instance list
+	Fetch(ctx context.Context, in *FetchRequest, opts ...grpc.CallOption) (*FetchResponse, error)
 }
 
 type registryServiceClient struct {
@@ -65,6 +67,15 @@ func (c *registryServiceClient) Cancel(ctx context.Context, in *CancelRequest, o
 	return out, nil
 }
 
+func (c *registryServiceClient) Fetch(ctx context.Context, in *FetchRequest, opts ...grpc.CallOption) (*FetchResponse, error) {
+	out := new(FetchResponse)
+	err := c.cc.Invoke(ctx, "/com.busgo.registry.proto.RegistryService/fetch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RegistryServiceServer is the server API for RegistryService service.
 // All implementations must embed UnimplementedRegistryServiceServer
 // for forward compatibility
@@ -75,6 +86,8 @@ type RegistryServiceServer interface {
 	Renew(context.Context, *RenewRequest) (*RenewResponse, error)
 	// cancel a service instance
 	Cancel(context.Context, *CancelRequest) (*CancelResponse, error)
+	// fetch service instance list
+	Fetch(context.Context, *FetchRequest) (*FetchResponse, error)
 	mustEmbedUnimplementedRegistryServiceServer()
 }
 
@@ -90,6 +103,9 @@ func (UnimplementedRegistryServiceServer) Renew(context.Context, *RenewRequest) 
 }
 func (UnimplementedRegistryServiceServer) Cancel(context.Context, *CancelRequest) (*CancelResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Cancel not implemented")
+}
+func (UnimplementedRegistryServiceServer) Fetch(context.Context, *FetchRequest) (*FetchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Fetch not implemented")
 }
 func (UnimplementedRegistryServiceServer) mustEmbedUnimplementedRegistryServiceServer() {}
 
@@ -158,6 +174,24 @@ func _RegistryService_Cancel_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RegistryService_Fetch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FetchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RegistryServiceServer).Fetch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/com.busgo.registry.proto.RegistryService/fetch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RegistryServiceServer).Fetch(ctx, req.(*FetchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RegistryService_ServiceDesc is the grpc.ServiceDesc for RegistryService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -176,6 +210,10 @@ var RegistryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "cancel",
 			Handler:    _RegistryService_Cancel_Handler,
+		},
+		{
+			MethodName: "fetch",
+			Handler:    _RegistryService_Fetch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

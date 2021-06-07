@@ -132,3 +132,36 @@ func (s *RegistryServer) Cancel(ctx context.Context, request *pb.CancelRequest) 
 		Instance: registry.NewServiceInstance(in),
 	}, nil
 }
+
+// fetch service instance list
+func (s *RegistryServer) Fetch(ctx context.Context, request *pb.FetchRequest) (*pb.FetchResponse, error) {
+
+	instances, err := s.r.Fetch(request.Segment, request.ServiceName)
+	if err != nil {
+		e := err.(registry.RegistryError)
+		return &pb.FetchResponse{
+			Code:      e.Code,
+			Message:   "",
+			Instances: make([]*pb.ServiceInstance, 0),
+		}, nil
+	}
+
+	if len(instances) == 0 {
+		return &pb.FetchResponse{
+			Code:      0,
+			Message:   "",
+			Instances: make([]*pb.ServiceInstance, 0),
+		}, nil
+	}
+
+	ins := make([]*pb.ServiceInstance, 0)
+	for _, instance := range instances {
+		ins = append(ins, registry.NewServiceInstance(instance))
+	}
+
+	return &pb.FetchResponse{
+		Code:      0,
+		Message:   "",
+		Instances: ins,
+	}, nil
+}

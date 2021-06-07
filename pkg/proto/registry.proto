@@ -13,6 +13,9 @@ service RegistryService {
   // cancel a service instance
   rpc cancel(CancelRequest)returns(CancelResponse);
 
+  // fetch service instance list
+  rpc fetch(FetchRequest)returns(FetchResponse);
+
 }
 
 message FetchRequest {
@@ -23,7 +26,7 @@ message FetchRequest {
 message FetchResponse {
   int32 code =1;
   string message=2;
-  repeated ServiceInstance instance=3;
+  repeated ServiceInstance instances=3;
 }
 
 message CancelRequest {
