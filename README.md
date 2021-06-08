@@ -1,3 +1,3 @@
 ### elsa
 
-> micro framework for golang
+> micro servicee framework for GO
