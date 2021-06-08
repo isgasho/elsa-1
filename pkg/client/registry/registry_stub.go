@@ -10,12 +10,13 @@ import (
 )
 
 type RegistryStub struct {
+	segment   string
 	endpoints []string
 	cli       pb.RegistryServiceClient
 }
 
 // new a registry stub
-func NewRegistryStub(endpoints []string) (*RegistryStub, error) {
+func NewRegistryStub(segment string, endpoints []string) (*RegistryStub, error) {
 
 	r := resolver.NewDirectResolverWithEndpoints(endpoints)
 	cc, err := grpc.Dial(pb.RegistryService_ServiceDesc.ServiceName, grpc.WithInsecure(), grpc.WithResolvers(r))
@@ -24,6 +25,7 @@ func NewRegistryStub(endpoints []string) (*RegistryStub, error) {
 	}
 	cli := pb.NewRegistryServiceClient(cc)
 	return &RegistryStub{
+		segment:   segment,
 		endpoints: endpoints,
 		cli:       cli,
 	}, nil
@@ -49,10 +51,10 @@ func (r *RegistryStub) Fetch(cxt context.Context, segment, serviceName string) (
 }
 
 // register a service instance
-func (r *RegistryStub) Register(ctx context.Context, segment, serviceName, ip string, port int32) (bool, error) {
+func (r *RegistryStub) Register(ctx context.Context, serviceName, ip string, port int32) (bool, error) {
 
 	response, err := r.cli.Register(ctx, &pb.RegisterRequest{
-		Segment:         segment,
+		Segment:         r.segment,
 		ServiceName:     serviceName,
 		Ip:              ip,
 		Port:            port,
@@ -66,12 +68,12 @@ func (r *RegistryStub) Register(ctx context.Context, segment, serviceName, ip st
 	})
 
 	if err != nil {
-		log.Errorf("register the segment:%s,serviceName:%s,ip:%s,port:%32 fail:%s", segment, serviceName, ip, port, err.Error())
+		log.Errorf("register the segment:%s,serviceName:%s,ip:%s,port:%32 fail:%s", r.segment, serviceName, ip, port, err.Error())
 		return false, err
 	}
 
 	if response.Code != 0 {
-		log.Warnf("register the segment:%s,serviceName:%s,ip:%s,port:%32 fail code:%d", segment, serviceName, ip, port, response.Code)
+		log.Warnf("register the segment:%s,serviceName:%s,ip:%s,port:%32 fail code:%d", r.segment, serviceName, ip, port, response.Code)
 		return false, nil
 	}
 
@@ -79,10 +81,10 @@ func (r *RegistryStub) Register(ctx context.Context, segment, serviceName, ip st
 }
 
 // renew a service instance
-func (r *RegistryStub) Renew(ctx context.Context, segment, serviceName, ip string, port int32) (bool, error) {
+func (r *RegistryStub) Renew(ctx context.Context, serviceName, ip string, port int32) (bool, error) {
 
 	response, err := r.cli.Renew(ctx, &pb.RenewRequest{
-		Segment:     segment,
+		Segment:     r.segment,
 		ServiceName: serviceName,
 		Ip:          ip,
 		Port:        port,
@@ -90,21 +92,21 @@ func (r *RegistryStub) Renew(ctx context.Context, segment, serviceName, ip strin
 	})
 
 	if err != nil {
-		log.Errorf("renew the segment:%s,serviceName:%s,ip:%s,port:%32 fail:%s", segment, serviceName, ip, port, err.Error())
+		log.Errorf("renew the segment:%s,serviceName:%s,ip:%s,port:%32 fail:%s", r.segment, serviceName, ip, port, err.Error())
 		return false, err
 	}
 
 	if response.Code != 0 {
-		log.Warnf("renew the segment:%s,serviceName:%s,ip:%s,port:%32 code:%d", segment, serviceName, ip, port, response.Code)
+		log.Warnf("renew the segment:%s,serviceName:%s,ip:%s,port:%32 code:%d", r.segment, serviceName, ip, port, response.Code)
 		return false, nil
 	}
 	return true, nil
 }
 
 // cancel a service instance
-func (r *RegistryStub) Cancel(ctx context.Context, segment, serviceName, ip string, port int32) (bool, error) {
+func (r *RegistryStub) Cancel(ctx context.Context, serviceName, ip string, port int32) (bool, error) {
 	response, err := r.cli.Cancel(ctx, &pb.CancelRequest{
-		Segment:     segment,
+		Segment:     r.segment,
 		ServiceName: serviceName,
 		Ip:          ip,
 		Port:        port,
@@ -112,12 +114,12 @@ func (r *RegistryStub) Cancel(ctx context.Context, segment, serviceName, ip stri
 	})
 
 	if err != nil {
-		log.Errorf("cancel the segment:%s,serviceName:%s,ip:%s,port:%32 fail:%s", segment, serviceName, ip, port, err.Error())
+		log.Errorf("cancel the segment:%s,serviceName:%s,ip:%s,port:%32 fail:%s", r.segment, serviceName, ip, port, err.Error())
 		return false, err
 	}
 
 	if response.Code != 0 {
-		log.Warnf("cancel the segment:%s,serviceName:%s,ip:%s,port:%32 code:%d", segment, serviceName, ip, port, response.Code)
+		log.Warnf("cancel the segment:%s,serviceName:%s,ip:%s,port:%32 code:%d", r.segment, serviceName, ip, port, response.Code)
 		return false, nil
 	}
 	return true, nil
