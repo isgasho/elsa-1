@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"github.com/busgo/elsa/pkg/client/registry"
 	"github.com/busgo/elsa/pkg/log"
 	"github.com/busgo/elsa/pkg/utils"
 	"sync"
@@ -10,7 +9,7 @@ import (
 )
 
 type ManagedSentinel struct {
-	registryStub *registry.RegistryStub
+	registryStub *RegistryStub
 	sentinels    map[string]*Sentinel
 	ip           string
 	port         int32
@@ -21,14 +20,14 @@ type Sentinel struct {
 	serviceName    string
 	ip             string
 	port           int32
-	registryStub   *registry.RegistryStub
+	registryStub   *RegistryStub
 	registerChan   chan bool
 	retryRenewChan chan bool
 	closed         chan bool
 	sync.RWMutex
 }
 
-func NewManagedSentinel(serverPort int32, registryStub *registry.RegistryStub) *ManagedSentinel {
+func NewManagedSentinel(serverPort int32, registryStub *RegistryStub) *ManagedSentinel {
 
 	return &ManagedSentinel{
 		registryStub: registryStub,
@@ -54,7 +53,7 @@ func (m *ManagedSentinel) AddGrpcService(serviceName string) {
 }
 
 //  new sentinel
-func newSentinel(serviceName, ip string, port int32, registryStub *registry.RegistryStub) *Sentinel {
+func newSentinel(serviceName, ip string, port int32, registryStub *RegistryStub) *Sentinel {
 	return &Sentinel{
 		serviceName:    serviceName,
 		ip:             ip,

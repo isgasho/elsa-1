@@ -1,9 +1,8 @@
-package resolver
+package client
 
 import (
 	"context"
 	"fmt"
-	"github.com/busgo/elsa/pkg/client/registry"
 	"github.com/busgo/elsa/pkg/log"
 	"google.golang.org/grpc/resolver"
 	"sync"
@@ -58,7 +57,7 @@ func (r *DirectResolver) Close() {
 
 type ElsaResolverBuilder struct {
 	resolvers    map[string]*ElsaResolver
-	registryStub *registry.RegistryStub
+	registryStub *RegistryStub
 	sync.RWMutex
 }
 
@@ -66,7 +65,7 @@ type ElsaResolver struct {
 	segment      string
 	serviceName  string
 	cc           resolver.ClientConn
-	registryStub *registry.RegistryStub
+	registryStub *RegistryStub
 	state        chan bool
 	retryChan    chan bool
 	refreshing   bool
@@ -74,7 +73,7 @@ type ElsaResolver struct {
 }
 
 // new a elsa resolver
-func NewElsaResolverBuilder(stub *registry.RegistryStub) *ElsaResolverBuilder {
+func NewElsaResolverBuilder(stub *RegistryStub) *ElsaResolverBuilder {
 	return &ElsaResolverBuilder{resolvers: make(map[string]*ElsaResolver), RWMutex: sync.RWMutex{}, registryStub: stub}
 }
 
@@ -104,7 +103,7 @@ func (r *ElsaResolverBuilder) Scheme() string {
 }
 
 // new a elsa resolver
-func NewElsaResolver(serviceName string, cli resolver.ClientConn, registryStub *registry.RegistryStub) *ElsaResolver {
+func NewElsaResolver(serviceName string, cli resolver.ClientConn, registryStub *RegistryStub) *ElsaResolver {
 
 	return &ElsaResolver{
 		serviceName:  serviceName,

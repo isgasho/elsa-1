@@ -1,8 +1,7 @@
-package registry
+package client
 
 import (
 	"context"
-	"github.com/busgo/elsa/pkg/client/resolver"
 	"github.com/busgo/elsa/pkg/log"
 	"github.com/busgo/elsa/pkg/proto/pb"
 	"google.golang.org/grpc"
@@ -18,7 +17,7 @@ type RegistryStub struct {
 // new a registry stub
 func NewRegistryStub(segment string, endpoints []string) (*RegistryStub, error) {
 
-	r := resolver.NewDirectResolverWithEndpoints(endpoints)
+	r := NewDirectResolverWithEndpoints(endpoints)
 	cc, err := grpc.Dial(pb.RegistryService_ServiceDesc.ServiceName, grpc.WithInsecure(), grpc.WithResolvers(r))
 	if err != nil {
 		return nil, err
@@ -96,12 +95,12 @@ func (r *RegistryStub) Renew(ctx context.Context, serviceName, ip string, port i
 	})
 
 	if err != nil {
-		log.Errorf("renew the segment:%s,serviceName:%s,ip:%s,port:%32 fail:%s", r.segment, serviceName, ip, port, err.Error())
+		log.Errorf("renew the segment:%s,serviceName:%s,ip:%s,port:%d fail:%s", r.segment, serviceName, ip, port, err.Error())
 		return false, err
 	}
 
 	if response.Code != 0 {
-		log.Warnf("renew the segment:%s,serviceName:%s,ip:%s,port:%32 code:%d", r.segment, serviceName, ip, port, response.Code)
+		log.Warnf("renew the segment:%s,serviceName:%s,ip:%s,port:%d code:%d", r.segment, serviceName, ip, port, response.Code)
 		return false, nil
 	}
 	return true, nil
@@ -118,12 +117,12 @@ func (r *RegistryStub) Cancel(ctx context.Context, serviceName, ip string, port 
 	})
 
 	if err != nil {
-		log.Errorf("cancel the segment:%s,serviceName:%s,ip:%s,port:%32 fail:%s", r.segment, serviceName, ip, port, err.Error())
+		log.Errorf("cancel the [segment:%s,serviceName:%s,ip:%s,port:%s] fail:%s", r.segment, serviceName, ip, port, err.Error())
 		return false, err
 	}
 
 	if response.Code != 0 {
-		log.Warnf("cancel the segment:%s,serviceName:%s,ip:%s,port:%32 code:%d", r.segment, serviceName, ip, port, response.Code)
+		log.Warnf("cancel the [segment:%s,serviceName:%s,ip:%s,port:%s code:%d] fail", r.segment, serviceName, ip, port, response.Code)
 		return false, nil
 	}
 	return true, nil
