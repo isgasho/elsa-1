@@ -69,6 +69,7 @@ type ElsaResolver struct {
 	registryStub *registry.RegistryStub
 	state        chan bool
 	retryChan    chan bool
+	refreshing   bool
 	sync.RWMutex
 }
 
@@ -111,6 +112,7 @@ func NewElsaResolver(serviceName string, cli resolver.ClientConn, registryStub *
 		registryStub: registryStub,
 		state:        make(chan bool),
 		retryChan:    make(chan bool, 1),
+		refreshing:   false,
 	}
 }
 

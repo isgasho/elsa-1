@@ -25,6 +25,7 @@ type Sentinel struct {
 	registerChan   chan bool
 	retryRenewChan chan bool
 	closed         chan bool
+	sync.RWMutex
 }
 
 func NewManagedSentinel(serverPort int32, registryStub *registry.RegistryStub) *ManagedSentinel {
@@ -61,6 +62,7 @@ func newSentinel(serviceName, ip string, port int32, registryStub *registry.Regi
 		registryStub:   registryStub,
 		registerChan:   make(chan bool, 1),
 		retryRenewChan: make(chan bool, 1),
+		RWMutex:        sync.RWMutex{},
 	}
 }
 
@@ -79,7 +81,7 @@ func (s *Sentinel) lookup() {
 			time.Sleep(time.Second * 3)
 			s.register()
 		case <-s.closed:
-
+			log.Warnf("the sentinel has close serviceName:%s", s.serviceName)
 			return
 
 		}
@@ -87,7 +89,10 @@ func (s *Sentinel) lookup() {
 
 }
 
+//
 func (s *Sentinel) register() {
+	s.Lock()
+	defer s.Unlock()
 	ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
 	state, err := s.registryStub.Register(ctx, s.serviceName, s.ip, s.port)
 	if err != nil || !state {
@@ -100,7 +105,8 @@ func (s *Sentinel) register() {
 
 // renew
 func (s *Sentinel) renew() {
-
+	s.Lock()
+	defer s.Unlock()
 	ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
 	state, err := s.registryStub.Renew(ctx, s.serviceName, s.ip, s.port)
 	if err != nil {
