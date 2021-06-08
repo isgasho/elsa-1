@@ -32,6 +32,10 @@ func NewRegistryStub(segment string, endpoints []string) (*RegistryStub, error) 
 
 }
 
+func (r *RegistryStub) GetSegment() string {
+	return r.segment
+}
+
 // fetch service instance list
 func (r *RegistryStub) Fetch(cxt context.Context, segment, serviceName string) ([]*pb.ServiceInstance, error) {
 	response, err := r.cli.Fetch(cxt, &pb.FetchRequest{
