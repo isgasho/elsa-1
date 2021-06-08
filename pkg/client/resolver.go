@@ -9,7 +9,14 @@ import (
 	"time"
 )
 
-const Default_Scheme = "elsa"
+const (
+	DirectScheme = "direct"
+	ElsaScheme   = "elsa"
+)
+
+func BuildTarget(segment, serviceName string) string {
+	return fmt.Sprintf("%s:///%s", segment, serviceName)
+}
 
 type DirectResolver struct {
 	endpoints []string
@@ -41,7 +48,7 @@ func (r *DirectResolver) Build(target resolver.Target, cc resolver.ClientConn, o
 // Scheme returns the scheme supported by this resolver.
 // Scheme is defined at https://github.com/grpc/grpc/blob/master/doc/naming.md.
 func (r *DirectResolver) Scheme() string {
-	return Default_Scheme
+	return DirectScheme
 }
 
 // ResolveNow will be called by gRPC to try to resolve the target name
@@ -49,6 +56,8 @@ func (r *DirectResolver) Scheme() string {
 //
 // It could be called multiple times concurrently.
 func (r *DirectResolver) ResolveNow(opts resolver.ResolveNowOptions) {
+
+	log.Debugf("ResolveNow...")
 }
 
 // Close closes the resolver.
@@ -99,7 +108,7 @@ func (r *ElsaResolverBuilder) Build(target resolver.Target, cc resolver.ClientCo
 // Scheme returns the scheme supported by this resolver.
 // Scheme is defined at https://github.com/grpc/grpc/blob/master/doc/naming.md.
 func (r *ElsaResolverBuilder) Scheme() string {
-	return Default_Scheme
+	return ElsaScheme
 }
 
 // new a elsa resolver
@@ -120,6 +129,8 @@ func NewElsaResolver(serviceName string, cli resolver.ClientConn, registryStub *
 //
 // It could be called multiple times concurrently.
 func (r *ElsaResolver) ResolveNow(opts resolver.ResolveNowOptions) {
+	log.Debugf("resolver now....")
+	//r.refresh()
 }
 
 // Close closes the resolver.
@@ -150,7 +161,7 @@ func (r *ElsaResolver) lookup() {
 func (r *ElsaResolver) refresh() {
 
 	ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
-	instances, err := r.registryStub.Fetch(ctx, r.serviceName, r.serviceName)
+	instances, err := r.registryStub.Fetch(ctx, r.serviceName)
 	if err != nil || len(instances) == 0 {
 		r.retryChan <- true
 	}
@@ -163,6 +174,7 @@ func (r *ElsaResolver) refresh() {
 			Addr: fmt.Sprintf("%s:%d", instance.Ip, instance.Port),
 		})
 	}
+
 	err = r.cc.UpdateState(resolver.State{
 		Addresses: addresses,
 	})

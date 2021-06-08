@@ -49,6 +49,8 @@ func (m *ManagedSentinel) AddGrpcService(serviceName string) {
 	sentinel = newSentinel(serviceName, m.ip, m.port, m.registryStub)
 	m.sentinels[serviceName] = sentinel
 	sentinel.register()
+
+	go sentinel.lookup()
 	return
 }
 
@@ -80,7 +82,7 @@ func (s *Sentinel) lookup() {
 			time.Sleep(time.Second * 3)
 			s.register()
 		case <-s.closed:
-			log.Warnf("the sentinel has close serviceName:%s", s.serviceName)
+			log.Warnf("the sentinel has closed service name:%s", s.serviceName)
 			return
 
 		}
@@ -99,7 +101,7 @@ func (s *Sentinel) register() {
 		s.registerChan <- true
 		return
 	}
-	log.Debugf("register to the service name :%s,ip:%s,port:%d,fail 3s after try again...", s.serviceName, s.ip, s.port)
+	log.Debugf("register to the service name :%s,ip:%s,port:%d,success...", s.serviceName, s.ip, s.port)
 }
 
 // renew
@@ -118,7 +120,7 @@ func (s *Sentinel) renew() {
 		s.registerChan <- true
 		return
 	}
-	log.Debugf("renew to the service name :%s,ip:%s,port:%d,fail 3s after try again...", s.serviceName, s.ip, s.port)
+	log.Debugf("renew to the service name :%s,ip:%s,port:%d,success...", s.serviceName, s.ip, s.port)
 }
 
 // cancel
@@ -129,5 +131,4 @@ func (s *Sentinel) cancel() {
 		log.Warnf("cancel to the service name :%s,ip:%s,port:%d", s.serviceName, s.ip, s.port)
 	}
 	s.closed <- true
-
 }

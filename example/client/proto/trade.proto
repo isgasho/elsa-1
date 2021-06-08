@@ -1,0 +1,20 @@
+syntax="proto3";
+package com.busgo.trade.proto;
+option go_package = "github.com/busgo/elsa/example/client/proto/pb";
+
+service TradeService {
+
+  rpc ping(PingRequest)returns(PingResponse);
+}
+
+
+message PingRequest {
+
+    string  ping =1;
+
+}
+
+message PingResponse {
+
+    string  pong =1;
+}

@@ -5,6 +5,7 @@ import (
 	"github.com/busgo/elsa/pkg/log"
 	"github.com/busgo/elsa/pkg/proto/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/resolver"
 	"time"
 )
 
@@ -18,7 +19,9 @@ type RegistryStub struct {
 func NewRegistryStub(segment string, endpoints []string) (*RegistryStub, error) {
 
 	r := NewDirectResolverWithEndpoints(endpoints)
-	cc, err := grpc.Dial(pb.RegistryService_ServiceDesc.ServiceName, grpc.WithInsecure(), grpc.WithResolvers(r))
+	resolver.Register(r)
+	endpoint := BuildTarget(r.Scheme(), pb.RegistryService_ServiceDesc.ServiceName)
+	cc, err := grpc.Dial(endpoint, grpc.WithInsecure(), grpc.WithResolvers(r))
 	if err != nil {
 		return nil, err
 	}
@@ -36,18 +39,18 @@ func (r *RegistryStub) GetSegment() string {
 }
 
 // fetch service instance list
-func (r *RegistryStub) Fetch(cxt context.Context, segment, serviceName string) ([]*pb.ServiceInstance, error) {
+func (r *RegistryStub) Fetch(cxt context.Context, serviceName string) ([]*pb.ServiceInstance, error) {
 	response, err := r.cli.Fetch(cxt, &pb.FetchRequest{
-		Segment:     segment,
+		Segment:     r.segment,
 		ServiceName: serviceName,
 	})
 	if err != nil {
-		log.Errorf("fetch the segment:%s,serviceName:%s fail:%s", segment, serviceName, err.Error())
+		log.Errorf("fetch the segment:%s,serviceName:%s fail:%s", r.segment, serviceName, err.Error())
 		return make([]*pb.ServiceInstance, 0), err
 	}
 
 	if response.Code != 0 {
-		log.Errorf("fetch the segment:%s,serviceName:%s the the service name not found", segment, serviceName)
+		log.Errorf("fetch the segment:%s,serviceName:%s the the service name not found", r.segment, serviceName)
 		return make([]*pb.ServiceInstance, 0), err
 	}
 	return response.Instances, nil
