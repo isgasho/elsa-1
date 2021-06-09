@@ -21,7 +21,7 @@ func NewRegistryStub(segment string, endpoints []string) (*RegistryStub, error) 
 	r := NewDirectResolverWithEndpoints(endpoints)
 	resolver.Register(r)
 	endpoint := BuildTarget(r.Scheme(), pb.RegistryService_ServiceDesc.ServiceName)
-	cc, err := grpc.Dial(endpoint, grpc.WithInsecure(), grpc.WithResolvers(r))
+	cc, err := grpc.Dial(endpoint, grpc.WithInsecure(), grpc.WithResolvers(r), grpc.WithBalancerName("round_robin"))
 	if err != nil {
 		return nil, err
 	}
