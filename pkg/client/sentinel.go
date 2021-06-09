@@ -74,7 +74,7 @@ func newSentinel(serviceName, ip string, port int32, registryStub *RegistryStub)
 }
 
 func (s *Sentinel) lookup() {
-	renewTicker := time.Tick(time.Second * RenewTimeDuration)
+	renewTicker := time.Tick(RenewTimeDuration)
 
 	for {
 		select {
@@ -82,10 +82,10 @@ func (s *Sentinel) lookup() {
 			log.Infof("start renew the service name :%s", s.serviceName)
 			s.renew()
 		case <-s.retryRenewChan:
-			time.Sleep(time.Second * RetryTimeDuration)
+			time.Sleep(RetryTimeDuration)
 			s.renew()
 		case <-s.registerChan:
-			time.Sleep(time.Second * RetryTimeDuration)
+			time.Sleep(RetryTimeDuration)
 			s.register()
 		case <-s.closed:
 			log.Warnf("the sentinel has closed service name:%s", s.serviceName)
