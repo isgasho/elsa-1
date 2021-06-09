@@ -112,7 +112,7 @@ func (r *registry) Renew(segment, serviceName, ip string, port int32) (*Instance
 	}
 
 	in, err := app.renew(ip, port)
-	if err != nil {
+	if err == nil {
 		r.c.IncrCount()
 	}
 	return in, err
