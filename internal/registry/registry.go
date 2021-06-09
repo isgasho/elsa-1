@@ -91,7 +91,7 @@ func (r *registry) Cancel(segment, serviceName, ip string, port int32) (*Instanc
 		return in, err
 	}
 
-	if in != nil {
+	if in == nil {
 		r.c.DecrNeedCount()
 	}
 
