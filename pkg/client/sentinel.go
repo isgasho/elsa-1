@@ -29,7 +29,7 @@ type Sentinel struct {
 	registryStub   *RegistryStub
 	registerChan   chan bool
 	retryRenewChan chan bool
-	closed         chan bool
+	closedChan     chan bool
 	sync.RWMutex
 }
 
@@ -67,8 +67,9 @@ func newSentinel(serviceName, ip string, port int32, registryStub *RegistryStub)
 		ip:             ip,
 		port:           port,
 		registryStub:   registryStub,
-		registerChan:   make(chan bool, 1),
-		retryRenewChan: make(chan bool, 1),
+		registerChan:   make(chan bool, 10),
+		retryRenewChan: make(chan bool, 10),
+		closedChan:     make(chan bool),
 		RWMutex:        sync.RWMutex{},
 	}
 }
@@ -87,7 +88,7 @@ func (s *Sentinel) lookup() {
 		case <-s.registerChan:
 			time.Sleep(RetryTimeDuration)
 			s.register()
-		case <-s.closed:
+		case <-s.closedChan:
 			log.Warnf("the sentinel has closed serviceName:%s", s.serviceName)
 			return
 
@@ -138,5 +139,5 @@ func (s *Sentinel) cancel() {
 		log.Warnf("cancel serviceName:%s,ip:%s,port:%d fail", s.serviceName, s.ip, s.port)
 	}
 	log.Warnf("cancel serviceName:%s,ip:%s,port:%d success", s.serviceName, s.ip, s.port)
-	s.closed <- true
+	s.closedChan <- true
 }
