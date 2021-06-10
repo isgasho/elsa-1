@@ -79,7 +79,7 @@ func (s *Sentinel) lookup() {
 	for {
 		select {
 		case <-renewTicker: //renew
-			log.Infof("start renew the service name :%s", s.serviceName)
+			log.Infof("start renew serviceName:%s,ip:%s,port:%d ...", s.serviceName, s.ip, s.port)
 			s.renew()
 		case <-s.retryRenewChan:
 			time.Sleep(RetryTimeDuration)
@@ -88,7 +88,7 @@ func (s *Sentinel) lookup() {
 			time.Sleep(RetryTimeDuration)
 			s.register()
 		case <-s.closed:
-			log.Warnf("the sentinel has closed service name:%s", s.serviceName)
+			log.Warnf("the sentinel has closed serviceName:%s", s.serviceName)
 			return
 
 		}
@@ -103,11 +103,11 @@ func (s *Sentinel) register() {
 	ctx, _ := context.WithTimeout(context.Background(), TimeoutDuration)
 	state, err := s.registryStub.Register(ctx, s.serviceName, s.ip, s.port)
 	if err != nil || !state {
-		log.Warnf("register to the service name :%s,ip:%s,port:%d,fail 3s after try again...", s.serviceName, s.ip, s.port)
+		log.Warnf("register serviceName:%s,ip:%s,port:%d fail,after try again...", s.serviceName, s.ip, s.port)
 		s.registerChan <- true
 		return
 	}
-	log.Debugf("register to the service name :%s,ip:%s,port:%d,success...", s.serviceName, s.ip, s.port)
+	log.Infof("register serviceName:%s,ip:%s,port:%d success...", s.serviceName, s.ip, s.port)
 }
 
 // renew
@@ -117,16 +117,17 @@ func (s *Sentinel) renew() {
 	ctx, _ := context.WithTimeout(context.Background(), TimeoutDuration)
 	state, err := s.registryStub.Renew(ctx, s.serviceName, s.ip, s.port)
 	if err != nil {
-		log.Warnf("renew to the service name :%s,ip:%s,port:%d,fail 3s after try again...", s.serviceName, s.ip, s.port)
+		log.Errorf("renew serviceName:%s,ip:%s,port:%d fail,error:%s", s.serviceName, s.ip, s.port, err.Error())
 		s.retryRenewChan <- true
 		return
 	}
 
 	if !state {
+		log.Warnf("renew serviceName:%s,ip:%s,port:%d fail", s.serviceName, s.ip, s.port)
 		s.registerChan <- true
 		return
 	}
-	log.Debugf("renew to the service name :%s,ip:%s,port:%d,success...", s.serviceName, s.ip, s.port)
+	log.Infof("renew serviceName:%s,ip:%s,port:%d success", s.serviceName, s.ip, s.port)
 }
 
 // cancel
@@ -134,7 +135,8 @@ func (s *Sentinel) cancel() {
 	ctx, _ := context.WithTimeout(context.Background(), TimeoutDuration)
 	state, err := s.registryStub.Cancel(ctx, s.serviceName, s.ip, s.port)
 	if err != nil || !state {
-		log.Warnf("cancel to the service name :%s,ip:%s,port:%d", s.serviceName, s.ip, s.port)
+		log.Warnf("cancel serviceName:%s,ip:%s,port:%d fail", s.serviceName, s.ip, s.port)
 	}
+	log.Warnf("cancel serviceName:%s,ip:%s,port:%d success", s.serviceName, s.ip, s.port)
 	s.closed <- true
 }

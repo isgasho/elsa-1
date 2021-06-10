@@ -77,7 +77,6 @@ type ElsaResolver struct {
 	registryStub *RegistryStub
 	state        chan bool
 	retryChan    chan bool
-	refreshing   bool
 	sync.RWMutex
 }
 
@@ -120,7 +119,6 @@ func NewElsaResolver(serviceName string, cli resolver.ClientConn, registryStub *
 		registryStub: registryStub,
 		state:        make(chan bool),
 		retryChan:    make(chan bool, 1),
-		refreshing:   false,
 	}
 }
 
@@ -180,7 +178,7 @@ func (r *ElsaResolver) refresh() {
 	})
 
 	if err != nil {
-		log.Warnf("the elsa resolver refresh addresses fail:%s", err.Error())
+		log.Warnf("the elsa resolver segment:%s,serviceName:%s refresh addresses fail:%s", r.segment, r.serviceName, err.Error())
 		r.retryChan <- true
 	} else {
 		log.Infof("the elsa resolver segment:%s,serviceName:%s refresh addresses success", r.segment, r.serviceName)
