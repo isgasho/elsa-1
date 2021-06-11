@@ -6,7 +6,6 @@ import (
 	"github.com/busgo/elsa/pkg/client"
 	"github.com/busgo/elsa/pkg/log"
 	"google.golang.org/grpc"
-	"net"
 )
 
 type TradeGRPC struct {
@@ -24,20 +23,23 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	managedSentinel := client.NewManagedSentinel(8002, stub)
-	managedSentinel.AddGrpcService(pb.TradeService_ServiceDesc.ServiceName)
-
-	server := grpc.NewServer()
-	pb.RegisterTradeServiceServer(server, new(TradeGRPC))
-
-	l, err := net.Listen("tcp", ":8002")
+	elsaServer, err := client.NewElsaServer(client.WithName("trade"),
+		client.WithServerPort(8002),
+		client.WithRegistryStub(stub))
 	if err != nil {
 		panic(err)
 	}
 
-	log.Infof("the trade service has start...")
-	if err = server.Serve(l); err != nil {
+	elsaServer.Init(func(server *grpc.Server) (serverNames []string) {
+
+		pb.RegisterTradeServiceServer(server, new(TradeGRPC))
+		return []string{
+			pb.TradeService_ServiceDesc.ServiceName,
+		}
+	})
+
+	if err = elsaServer.Start(); err != nil {
+		log.Errorf("start the elsa server fail:%s", err.Error())
 		panic(err)
 	}
 

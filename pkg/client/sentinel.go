@@ -44,7 +44,7 @@ func NewManagedSentinel(serverPort int32, registryStub *RegistryStub) *ManagedSe
 	}
 }
 
-func (m *ManagedSentinel) AddGrpcService(serviceName string) {
+func (m *ManagedSentinel) PushService(serviceName string) {
 	m.Lock()
 	defer m.Unlock()
 	sentinel := m.sentinels[serviceName]
