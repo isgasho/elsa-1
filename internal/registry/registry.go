@@ -150,7 +150,7 @@ func (r *registry) getApplications() []*Application {
 func (r *registry) lookup() {
 	evictTicker := time.Tick(census.ScanEvictDuration)
 	seekNeedCountTicker := time.Tick(census.ResetRenewNeedCountDuration)
-	log.Debug("the registry evict task has start...")
+	log.Debugf("the registry evict task has start...")
 	for {
 
 		select {
@@ -172,17 +172,17 @@ func (r *registry) seekNeedCount() {
 	for _, app := range apps {
 		count += int64(len(app.instances))
 	}
-	log.Info("start seek need count:%d", count)
+	log.Infof("start seek need count:%d", count)
 	r.c.SeekNeedCount(count)
 }
 
 // evict expired instance
 func (r *registry) evict() {
 
-	log.Debug("start evict expired task...")
+	log.Debugf("start evict expired task...")
 	apps := r.getApplications()
 	if len(apps) == 0 {
-		log.Warn("the registry apps is nil")
+		log.Warnf("the registry apps is nil")
 		return
 	}
 
@@ -218,7 +218,7 @@ func (r *registry) evict() {
 	}
 
 	if expiredInstanceSize <= 0 {
-		log.Warn("has no expired instance to evict")
+		log.Warnf("has no expired instance to evict")
 		return
 	}
 
