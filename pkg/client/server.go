@@ -5,17 +5,20 @@ import (
 	"fmt"
 	"github.com/busgo/elsa/pkg/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/resolver"
 	"net"
 )
 
 type ElsaServer struct {
 	managedSentinel *ManagedSentinel
+	resolverBuilder *ElsaResolverBuilder
 	opts            ServerOptions
 	server          *grpc.Server
 	state           bool
 }
 
-type InitMethod func(server *grpc.Server) (serverNames []string)
+type InitAction func(server *grpc.Server) (serverNames []string)
+type BuilderAction func(server *grpc.Server) (serverNames []string)
 
 type ServerOptions struct {
 	name         string
@@ -64,16 +67,27 @@ func NewElsaServer(options ...ServerOption) (*ElsaServer, error) {
 		}
 		opts.registryStub = stub
 	}
+	// new resolver builder
+	resolverBuilder := NewElsaResolverBuilder(opts.registryStub)
+	resolver.Register(resolverBuilder)
+
 	return &ElsaServer{
 		managedSentinel: NewManagedSentinel(opts.serverPort, opts.registryStub),
+		resolverBuilder: resolverBuilder,
 		server:          grpc.NewServer(),
 		opts:            opts,
 		state:           false,
 	}, nil
 }
 
-func (s *ElsaServer) Init(m InitMethod) {
-	serviceNames := m(s.server)
+func (s *ElsaServer) BuildStub(serviceName string, callback func(cc *grpc.ClientConn) interface{}) interface{} {
+	cc, _ := grpc.Dial(BuildTarget(s.resolverBuilder.Scheme(), serviceName), grpc.WithInsecure(), grpc.WithBalancerName("round_robin"))
+	return callback(cc)
+}
+
+// init elsa server
+func (s *ElsaServer) Init(action InitAction) {
+	serviceNames := action(s.server)
 	s.state = true
 	for _, serviceName := range serviceNames {
 		s.managedSentinel.PushService(serviceName)

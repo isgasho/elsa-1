@@ -32,7 +32,6 @@ func main() {
 	}
 
 	elsaServer.Init(func(server *grpc.Server) (serverNames []string) {
-
 		pb.RegisterTradeServiceServer(server, new(TradeGRPC))
 		return []string{
 			pb.TradeService_ServiceDesc.ServiceName,

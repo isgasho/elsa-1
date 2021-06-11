@@ -6,7 +6,6 @@ import (
 	"github.com/busgo/elsa/pkg/client"
 	"github.com/busgo/elsa/pkg/log"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/resolver"
 	"time"
 )
 
@@ -16,24 +15,37 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	builder := client.NewElsaResolverBuilder(stub)
-	resolver.Register(builder)
-	cc, err := grpc.Dial(client.BuildTarget(builder.Scheme(), pb.TradeService_ServiceDesc.ServiceName), grpc.WithInsecure(), grpc.WithBalancerName("round_robin"))
+
+	elsaServer, err := client.NewElsaServer(client.WithServerPort(8002), client.WithRegistryStub(stub), client.WithName("consumer"))
 	if err != nil {
 		panic(err)
 	}
 
-	cli := pb.NewTradeServiceClient(cc)
+	elsaServer.Init(func(server *grpc.Server) (serverNames []string) {
+		return make([]string, 0)
+	})
 
-	for {
-		response, err := cli.Ping(context.Background(), &pb.PingRequest{Ping: "ok"})
-		if err != nil {
-			log.Errorf("response error:%s", err.Error())
-			continue
+	// build the stub
+	cli := elsaServer.BuildStub(pb.TradeService_ServiceDesc.ServiceName, func(cc *grpc.ClientConn) interface{} {
+		return pb.NewTradeServiceClient(cc)
+	}).(pb.TradeServiceClient)
+
+	go func() {
+		for {
+			response, err := cli.Ping(context.Background(), &pb.PingRequest{Ping: "ok"})
+			if err != nil {
+				log.Errorf("response error:%s", err.Error())
+				time.Sleep(time.Millisecond * 500)
+				continue
+			}
+
+			log.Infof("call trade service ping method  success pong:%s", response.Pong)
+			time.Sleep(time.Millisecond * 500)
 		}
+	}()
 
-		log.Infof("call trade service ping method  success pong:%s", response.Pong)
-		time.Sleep(time.Millisecond * 200)
+	if err = elsaServer.Start(); err != nil {
+		panic(err)
 	}
 
 }
