@@ -57,7 +57,7 @@ func (r *DirectResolver) Scheme() string {
 // It could be called multiple times concurrently.
 func (r *DirectResolver) ResolveNow(opts resolver.ResolveNowOptions) {
 
-	log.Debugf("ResolveNow...")
+	log.Debugf("resolve now...")
 }
 
 // Close closes the resolver.
@@ -71,12 +71,13 @@ type ElsaResolverBuilder struct {
 }
 
 type ElsaResolver struct {
-	segment      string
-	serviceName  string
-	cc           resolver.ClientConn
-	registryStub *RegistryStub
-	state        chan bool
-	retryChan    chan bool
+	segment         string
+	serviceName     string
+	cc              resolver.ClientConn
+	registryStub    *RegistryStub
+	closedChan      chan bool
+	retryChan       chan bool
+	latestTimestamp int64
 	sync.RWMutex
 }
 
@@ -117,7 +118,7 @@ func NewElsaResolver(serviceName string, cli resolver.ClientConn, registryStub *
 		serviceName:  serviceName,
 		cc:           cli,
 		registryStub: registryStub,
-		state:        make(chan bool),
+		closedChan:   make(chan bool),
 		retryChan:    make(chan bool, 1),
 	}
 }
@@ -128,13 +129,27 @@ func NewElsaResolver(serviceName string, cli resolver.ClientConn, registryStub *
 // It could be called multiple times concurrently.
 func (r *ElsaResolver) ResolveNow(opts resolver.ResolveNowOptions) {
 	log.Debugf("resolver now....")
-	//r.refresh()
+	if !r.checkState() {
+		log.Debugf("resolver now not allow refresh....")
+		return
+	}
+	r.refresh()
+}
+
+// check refresh state
+func (r *ElsaResolver) checkState() bool {
+
+	r.RLock()
+	defer r.RUnlock()
+	now := time.Now().UnixNano()
+	delta := now - r.latestTimestamp
+	return delta >= int64(time.Second*3)
 }
 
 // Close closes the resolver.
 func (r *ElsaResolver) Close() {
 
-	r.state <- true
+	r.closedChan <- true
 	log.Infof("the elsa resolver has closed...")
 }
 
@@ -145,7 +160,7 @@ func (r *ElsaResolver) lookup() {
 		select {
 		case <-refreshTicker:
 			r.refresh() // refresh the service instance list
-		case <-r.state:
+		case <-r.closedChan:
 			log.Warn("the elsa resolver has stop...")
 			return
 		case <-r.retryChan:
@@ -158,13 +173,15 @@ func (r *ElsaResolver) lookup() {
 // refresh the service instance list
 func (r *ElsaResolver) refresh() {
 
+	r.latestTimestamp = time.Now().UnixNano()
 	ctx, _ := context.WithTimeout(context.Background(), time.Millisecond*500)
 	instances, err := r.registryStub.Fetch(ctx, r.serviceName)
-	if err != nil || len(instances) == 0 {
+	if err != nil {
+		log.Warnf("fetch the service name:%s fail:%s", r.serviceName, err.Error())
 		r.retryChan <- true
+		return
 	}
 	r.Lock()
-
 	addresses := make([]resolver.Address, 0)
 
 	for _, instance := range instances {
@@ -176,12 +193,16 @@ func (r *ElsaResolver) refresh() {
 	err = r.cc.UpdateState(resolver.State{
 		Addresses: addresses,
 	})
-
 	if err != nil {
 		log.Warnf("the elsa resolver segment:%s,serviceName:%s refresh addresses fail:%s", r.segment, r.serviceName, err.Error())
-		r.retryChan <- true
 	} else {
 		log.Infof("the elsa resolver segment:%s,serviceName:%s refresh addresses success", r.segment, r.serviceName)
+	}
+
+	// not found a service instance  must try again
+	if len(addresses) == 0 {
+		log.Warnf("fetch the service name:%s not found", r.serviceName)
+		r.retryChan <- true
 	}
 
 	r.Unlock()
