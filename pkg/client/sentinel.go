@@ -60,6 +60,15 @@ func (m *ManagedSentinel) PushService(serviceName string) {
 	return
 }
 
+func (m *ManagedSentinel) Close() {
+	if len(m.sentinels) == 0 {
+		return
+	}
+	for _, sentinel := range m.sentinels {
+		sentinel.cancel()
+	}
+}
+
 //  new sentinel
 func newSentinel(serviceName, ip string, port int32, registryStub *RegistryStub) *Sentinel {
 	return &Sentinel{
@@ -137,7 +146,8 @@ func (s *Sentinel) cancel() {
 	state, err := s.registryStub.Cancel(ctx, s.serviceName, s.ip, s.port)
 	if err != nil || !state {
 		log.Warnf("cancel serviceName:%s,ip:%s,port:%d fail", s.serviceName, s.ip, s.port)
+	} else {
+		log.Infof("cancel serviceName:%s,ip:%s,port:%d success", s.serviceName, s.ip, s.port)
 	}
-	log.Warnf("cancel serviceName:%s,ip:%s,port:%d success", s.serviceName, s.ip, s.port)
 	s.closedChan <- true
 }

@@ -7,6 +7,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/resolver"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 type ElsaServer struct {
@@ -15,6 +18,7 @@ type ElsaServer struct {
 	opts            ServerOptions
 	server          *grpc.Server
 	state           bool
+	signChan        chan os.Signal
 }
 
 type InitAction func(server *grpc.Server) (serverNames []string)
@@ -77,6 +81,7 @@ func NewElsaServer(options ...ServerOption) (*ElsaServer, error) {
 		server:          grpc.NewServer(),
 		opts:            opts,
 		state:           false,
+		signChan:        make(chan os.Signal),
 	}, nil
 }
 
@@ -107,9 +112,25 @@ func (s *ElsaServer) Start() error {
 	if err != nil {
 		return err
 	}
+
+	// lookup
+	go s.lookup()
 	log.Infof("the %s server has start...", s.opts.name)
 	if err = s.server.Serve(l); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (s *ElsaServer) lookup() {
+	signal.Notify(s.signChan, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2)
+	go func() {
+
+		select {
+
+		case <-s.signChan:
+			s.managedSentinel.Close()
+			os.Exit(0)
+		}
+	}()
 }
