@@ -20,7 +20,7 @@
 
 
 
-<img src="https://raw.githubusercontent.com/busgo/elsa/master/docs/img/arch.png" alt="架构图" style="zoom:60%;" />
+<img src="https://github.com/busgo/elsa/blob/master/docs/img/arch.png?raw=true" alt="架构图" style="zoom:60%;" />
 
 #### 快速开始
 
@@ -68,13 +68,9 @@
 
   ##### TODO
 
-  ***
-
-  1. 统一网关API 
-  2. Java Client 
+  1. 统一API网关服务
+  2. Java Client
   3. 链路追踪集成
-  4. 分布式配置服务集成
-  5. 分布式任务调度集成
-
-  
+  4. 分布式任务调度
+  5. 分布式配置中心
 
