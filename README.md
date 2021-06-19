@@ -21,3 +21,60 @@
 
 
 <img src="/Users/apple/Desktop/wp/code/home/go/elsa/docs/img/arch.png" alt="架构图" style="zoom:60%;" />
+
+#### 快速开始
+
+***
+
+##### 依赖
+
+在使用之前需要先安装相关依赖
+
+* [Go](https://github.com/golang) 请选择最后1.13.5以后[版本](https://golang.org/doc/devel/release.html)。 
+
+* [Protocol buffer](https://developers.google.com/protocol-buffers) 编译二进制文件 *protoc* 采用 [*proto3* ](https://developers.google.com/protocol-buffers/docs/proto3)版本。具体安装请参考 [安装向导](https://www.grpc.io/docs/protoc-installation/) 部分。
+
+* *go-grpc* 自动生成 *grpc go* 代码 插件安装，在终端执行如下命令。将生成的 *protoc-gen-go-grpc* 文件添加环境变量中。
+
+  ```shell
+  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1
+  ```
+
+   
+
+  ##### 注册中心服务配置
+
+  下载代码
+
+  ``` shell
+  git clone https://www.github.com/busgo/elsa
+  ```
+
+  ​      配置注册中心集群地址 (格式 ip1:port1, ip2:port2)
+
+  ```shell
+  cd elsa/cmd/registry
+  go build .
+  nohup ./elsa >> elsa.log 2>&1 &
+  ```
+
+  ##### 服务提供者
+
+  
+
+  ##### 服务消费者
+
+  
+
+  ##### TODO
+
+  ***
+
+  1. 统一网关API 
+  2. Java Client 
+  3. 链路追踪集成
+  4. 分布式配置服务集成
+  5. 分布式任务调度集成
+
+  
+
