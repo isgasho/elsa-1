@@ -20,7 +20,7 @@
 
 
 
-<img src="/Users/apple/Desktop/wp/code/home/go/elsa/docs/img/arch.png" alt="架构图" style="zoom:60%;" />
+<img src="https://raw.githubusercontent.com/busgo/elsa/master/docs/img/arch.png" alt="架构图" style="zoom:60%;" />
 
 #### 快速开始
 
