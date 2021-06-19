@@ -41,36 +41,35 @@
   ```
 
    
+##### 注册中心
 
-  ##### 注册中心服务配置
-
-  下载代码
+下载代码
 
   ``` shell
   git clone https://www.github.com/busgo/elsa
   ```
 
-  ​      配置注册中心集群地址 (格式 ip1:port1, ip2:port2)
+配置注册中心集群地址 (格式 ip1:port1, ip2:port2)
 
-  ```shell
+```shell
   cd elsa/cmd/registry
   go build .
   nohup ./elsa >> elsa.log 2>&1 &
-  ```
+```
 
-  ##### 服务提供者
-
-  
-
-  ##### 服务消费者
+##### 创建服务提供端
 
   
 
-  ##### TODO
+##### 创建服务消费端
 
-  1. 统一API网关服务
-  2. Java Client
-  3. 链路追踪集成
-  4. 分布式任务调度
-  5. 分布式配置中心
+  
+
+##### TODO
+
+1. 统一API网关服务
+2. Java Client
+3. 链路追踪集成
+4. 分布式任务调度
+5. 分布式配置中心
 
