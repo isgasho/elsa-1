@@ -58,7 +58,9 @@ func getLocalEndpoint(endpoints []string) string {
 	}
 	ip := utils.GetLocalIp()
 	for _, endpoint := range endpoints {
-		if strings.HasPrefix(endpoint, ip) {
+		if strings.HasPrefix(endpoint, ip) ||
+			strings.HasPrefix(endpoint, utils.LocalIp) ||
+			strings.HasPrefix(endpoint, utils.LocalHost) {
 			return endpoint
 		}
 	}

@@ -192,10 +192,9 @@ func NewPeerEndpoint(endpoint string) (*Peer, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &Peer{
 		endpoint: endpoint,
 		cli:      pb.NewRegistryServiceClient(cc),
-		local:    strings.HasPrefix(endpoint, utils.GetLocalIp()),
+		local:    strings.HasPrefix(endpoint, utils.GetLocalIp()) || strings.HasPrefix(endpoint, utils.LocalIp) || strings.HasPrefix(endpoint, utils.LocalHost),
 	}, nil
 }

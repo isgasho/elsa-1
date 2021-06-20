@@ -4,6 +4,11 @@ import (
 	"net"
 )
 
+const (
+	LocalIp   = "127.0.0.1"
+	LocalHost = "localhost"
+)
+
 // get local ip address
 func GetLocalIp() string {
 	addresses, err := net.InterfaceAddrs()
