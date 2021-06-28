@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/busgo/elsa/pkg/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/resolver"
 	"net"
 	"os"
@@ -97,7 +98,7 @@ func (s *ElsaServer) Init(action InitAction) {
 	for _, serviceName := range serviceNames {
 		s.managedSentinel.PushService(serviceName)
 	}
-
+	reflection.Register(s.server)
 	log.Infof("the %s server initialize success", s.opts.name)
 }
 
